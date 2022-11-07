@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # coding:utf-8
+import copy
+import json
+import os
 import sys
+from collections import defaultdict
+
+from helper.configure import Configure
+from models.structure_model.tree import Tree
 
 sys.path.append('../HiMatch')
-import os
-from models.structure_model.tree import Tree
-import json
-import copy
-from collections import defaultdict
-from helper.configure import Configure
-
 ROOT_LABEL = 'Root'
 
 

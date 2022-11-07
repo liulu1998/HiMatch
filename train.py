@@ -5,6 +5,7 @@ import os
 import random
 import sys
 
+import numpy as np
 import torch
 from transformers import BertTokenizer
 
@@ -18,6 +19,18 @@ from helper.utils import load_checkpoint
 from models.model import HiMatch
 from train_modules.criterions import ClassificationLoss, MarginRankingLoss
 from train_modules.trainer import Trainer
+
+
+def set_seed(seed):
+    """
+    set random seed
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
 
 
 def set_optimizer(config, model):
@@ -126,9 +139,8 @@ if __name__ == "__main__":
         os.system('CUDA_VISIBLE_DEVICES=' + str(configs.train.device_setting.visible_device_list))
     else:
         os.system("CUDA_VISIBLE_DEVICES=''")
-    random.seed(2021)
-    torch.manual_seed(2021)
-    torch.cuda.manual_seed(2021)
+
+    set_seed(2021)
     logger.Logger(configs)
 
     if not os.path.isdir(configs.train.checkpoint.dir):

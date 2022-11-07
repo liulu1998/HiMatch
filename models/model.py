@@ -99,7 +99,9 @@ class HiMatch(nn.Module):
                 token_output = self.text_encoder(embedding, seq_len)
 
             logits, text_repre, label_repre_positive, label_repre_negative = self.himatch(
-                [token_output, mode, batch['ranking_positive_mask'], batch['ranking_negative_mask'], label_repre])
+                [token_output, mode, batch['ranking_positive_mask'],
+                 batch['ranking_negative_mask'], label_repre]
+            )
             return logits, text_repre, label_repre_positive, label_repre_negative
 
         else:

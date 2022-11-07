@@ -5,6 +5,8 @@ The code for ACL-2021 Long Paper [Hierarchy-aware Label Semantics Matching Netwo
 
 - 获取数据集
 - 处理中文数据集
+  - **分词**，分为 token 
+  - 编写 Label 的层次和描述信息
 
 ## Dependency  
 ```
@@ -23,7 +25,7 @@ Transform your dataset to json format file {'token': List[str], 'label': List[st
 You can refer to data_modules/preprocess.py, and here is the WOS dataset [Google Drive](https://drive.google.com/file/d/1rOhTmMf6bgDOwLmAhIDdJwljgmuA0Tu0/view?usp=sharing) after preprocessing.  
 
 ### Label Prior Probability (Label Structure)  
-Preprocess the taxnomy format (data/wos.taxnomy and data/wos_prob_child_parent.json)  
+Preprocess the taxonomy format (data/wos.taxnomy and data/wos_prob_child_parent.json)  
 Extract Label Prior Probability  
 ```
 python helper/hierarchy_tree_statistic.py config/wos.json  
