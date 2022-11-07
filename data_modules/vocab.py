@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # coding:utf-8
 
-import pickle
-from collections import Counter
-import helper.logger as logger
-import tqdm
-import os
 import json
+import os
+from collections import Counter
+
+import tqdm
+
+import helper.logger as logger
 
 
 class Vocab(object):
@@ -79,7 +80,6 @@ class Vocab(object):
                 logger.info('Save Vocabulary in ' + vocab_dir[field])
         self.padding_index = self.v2i['token']['<PADDING>']
         self.oov_index = self.v2i['token']['<OOV>']
-
 
     def _load_pretrained_embedding_vocab(self):
         """

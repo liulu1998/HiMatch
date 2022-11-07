@@ -1,6 +1,8 @@
-import torch
 import math
+
+import torch
 from torch.optim.optimizer import Optimizer
+
 
 class AdamW(Optimizer):
     """ Implements Adam algorithm with weight decay fix.
@@ -15,12 +17,13 @@ class AdamW(Optimizer):
         >>> model = LSTM()
         >>> optimizer = AdamW(model.parameters(), lr=1e-3, weight_decay=1e-5)
     """
+
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-6, weight_decay=0.0, correct_bias=True):
         if lr < 0.0:
             raise ValueError("Invalid learning rate: {} - should be >= 0.0".format(lr))
         if not 0.0 <= betas[0] < 1.0:
             raise ValueError("Invalid beta parameter: {} - should be in [0.0, 1.0[".format(betas[0]))
-        if not 0.0 <= betas[1]  < 1.0:
+        if not 0.0 <= betas[1] < 1.0:
             raise ValueError("Invalid beta parameter: {} - should be in [0.0, 1.0[".format(betas[1]))
         if not 0.0 <= eps:
             raise ValueError("Invalid epsilon value: {} - should be >= 0.0".format(eps))

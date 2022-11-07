@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from torch.utils.data.dataset import Dataset
-from models.structure_model.tree import Tree
-import helper.logger as logger
 import json
 import os
 import random
+
+from torch.utils.data.dataset import Dataset
+
+import helper.logger as logger
 from helper.utils import get_hierarchy_relations, get_parent, get_sibling
+from models.structure_model.tree import Tree
+
 
 def get_sample_position(corpus_filename, on_memory, corpus_lines, stage):
     """
@@ -34,7 +37,8 @@ def get_sample_position(corpus_filename, on_memory, corpus_lines, stage):
 
 
 class ClassificationDataset(Dataset):
-    def __init__(self, config, vocab, stage='TRAIN', on_memory=True, corpus_lines=None, mode="TRAIN", bert_tokenizer=None):
+    def __init__(self, config, vocab, stage='TRAIN', on_memory=True, corpus_lines=None, mode="TRAIN",
+                 bert_tokenizer=None):
         """
         Dataset for text classification based on torch.utils.data.dataset.Dataset
         :param config: helper.configure, Configure Object
@@ -115,8 +119,8 @@ class ClassificationDataset(Dataset):
         padding = [0] * (max_seq_len - len(input_ids))
         input_len = len(input_ids)
 
-        input_ids   += padding
-        input_mask  += padding
+        input_ids += padding
+        input_mask += padding
         segment_ids += padding
 
         assert len(input_ids) == max_seq_len
@@ -126,7 +130,6 @@ class ClassificationDataset(Dataset):
         feature = {'input_ids': input_ids, 'input_mask': input_mask, 'segment_ids': segment_ids, 'input_len': input_len}
         return feature
 
-        
     def _preprocess_sample(self, sample_str):
         """
         preprocess each sample with the limitation of maximum length and pad each sample to maximum length
@@ -137,14 +140,14 @@ class ClassificationDataset(Dataset):
         sample = {'token': [], 'label': [], 'positive_sample': [], 'negative_sample': [], 'margin': []}
         for k in raw_sample.keys():
             if k == 'token':
-                
+
                 sample[k] = [self.vocab.v2i[k].get(v.lower(), self.vocab.oov_index) for v in raw_sample[k]]
-                
+
                 sentences = " ".join(raw_sample[k])
                 features = self.create_features(sentences, self.max_input_length)
                 for (features_k, features_v) in features.items():
                     sample[features_k] = features_v
-                    
+
             elif k == 'label':
                 sample[k] = []
                 if self.sample_num > len(raw_sample[k]):
@@ -180,14 +183,14 @@ class ClassificationDataset(Dataset):
                         sample['negative_sample'].append(n_int1)
                         sample['margin'].append(1)
 
-                        #random
+                        # random
                         n_int2 = random.randint(0, len(self.vocab.v2i['label']) - 1)
                         while self.vocab.i2v['label'][n_int2] in raw_sample['label']:
                             n_int2 = random.randint(0, len(self.vocab.v2i['label']) - 1)
                         sample['negative_sample'].append(n_int2)
                         sample['margin'].append(2)
 
-                        #logger.info("p_int:" + self.vocab.i2v['label'][p_int] + " " + "parent:" + self.vocab.i2v['label'][n_int0] + " " + "sibling:" + self.vocab.i2v['label'][n_int1] + " random:" + self.vocab.i2v['label'][n_int2])
+                        # logger.info("p_int:" + self.vocab.i2v['label'][p_int] + " " + "parent:" + self.vocab.i2v['label'][n_int0] + " " + "sibling:" + self.vocab.i2v['label'][n_int1] + " random:" + self.vocab.i2v['label'][n_int2])
 
                 if self.stage == "TRAIN" and self.sample_num > len(raw_sample['label']):
                     oversize = self.sample_num - len(raw_sample['label'])

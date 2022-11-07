@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # coding:utf-8
 
-import torch
-import numpy as np
-import os
 from torch import nn
+
 from models.matching_network import MatchingNet
-import torch.nn.functional as F
+
 
 class HiMatchTP(nn.Module):
     def __init__(self, config, label_map, graph_model, device, model_mode, graph_model_label=None):
@@ -26,15 +24,14 @@ class HiMatchTP(nn.Module):
         self.graph_model = graph_model
         self.graph_model_label = graph_model_label
         self.dataset = config.data.dataset
-        
-        self.linear = nn.Linear(len(self.label_map) * config.model.linear_transformation.node_dimension,
-                                    len(self.label_map))
 
-        
+        self.linear = nn.Linear(len(self.label_map) * config.model.linear_transformation.node_dimension,
+                                len(self.label_map))
+
         # linear transform
         self.transformation = nn.Linear(config.model.linear_transformation.text_dimension,
-                                            len(self.label_map) * config.model.linear_transformation.node_dimension)
-        
+                                        len(self.label_map) * config.model.linear_transformation.node_dimension)
+
         # dropout
         self.transformation_dropout = nn.Dropout(p=config.model.linear_transformation.dropout)
         self.dropout = nn.Dropout(p=config.model.classifier.dropout)
@@ -56,26 +53,26 @@ class HiMatchTP(nn.Module):
             text_feature, mode, ranking_positive_mask, ranking_negative_mask, label_repre = inputs
         else:
             text_feature, mode = inputs[0], inputs[1]
-            
+
         text_feature = text_feature.view(text_feature.shape[0], -1)
-        #original_text_feature = text_feature
-        
+        # original_text_feature = text_feature
+
         text_feature = self.transformation_dropout(self.transformation(text_feature))
         text_feature = text_feature.view(text_feature.shape[0],
-                                                 len(self.label_map),
-                                                 self.config.model.linear_transformation.node_dimension)
+                                         len(self.label_map),
+                                         self.config.model.linear_transformation.node_dimension)
 
         label_wise_text_feature = self.graph_model(text_feature)
-        
+
         logits = self.linear(label_wise_text_feature.view(label_wise_text_feature.shape[0], -1))
         if self.config.model.classifier.output_drop:
             logits = self.dropout(logits)
-        
+
         if inputs[1] == "TRAIN":
-            text_repre, label_repre_positive, label_repre_negative = self.matching_model(label_wise_text_feature.view(label_wise_text_feature.shape[0], -1),
-                                                                              ranking_positive_mask,
-                                                                              ranking_negative_mask, label_repre)
+            text_repre, label_repre_positive, label_repre_negative = self.matching_model(
+                label_wise_text_feature.view(label_wise_text_feature.shape[0], -1),
+                ranking_positive_mask,
+                ranking_negative_mask, label_repre)
             return logits, text_repre, label_repre_positive, label_repre_negative
         else:
             return logits
-

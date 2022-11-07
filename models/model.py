@@ -2,12 +2,13 @@
 # coding:utf-8
 
 import torch.nn as nn
+from transformers.modeling_bert import BertModel
+
+from models.embedding_layer import EmbeddingLayer
 from models.structure_model.structure_encoder import StructureEncoder
 from models.text_encoder import TextEncoder
-from models.embedding_layer import EmbeddingLayer
 from models.text_feature_propagation import HiMatchTP
 
-from transformers.modeling_bert import BertPreTrainedModel, BertModel
 
 class HiMatch(nn.Module):
     def __init__(self, config, vocab, model_mode='TRAIN'):
@@ -28,7 +29,7 @@ class HiMatch(nn.Module):
 
         self.token_map, self.label_map = vocab.v2i['token'], vocab.v2i['label']
         self.model_type = config.model.type
-        
+
         if "bert" in self.model_type:
             self.bert = BertModel.from_pretrained("bert-base-cased")
             self.bert_dropout = nn.Dropout(0.1)
@@ -44,16 +45,16 @@ class HiMatch(nn.Module):
                 initial_type=config.embedding.token.init_type
             )
             self.text_encoder = TextEncoder(config)
-        
+
         self.structure_encoder = StructureEncoder(config=config,
-                                                      label_map=vocab.v2i['label'],
-                                                      device=self.device,
-                                                      graph_model_type=config.structure_encoder.type)
+                                                  label_map=vocab.v2i['label'],
+                                                  device=self.device,
+                                                  graph_model_type=config.structure_encoder.type)
         self.structure_encoder_label = StructureEncoder(config=config,
-                                                      label_map=vocab.v2i['label'],
-                                                      device=self.device,
-                                                      graph_model_type=config.structure_encoder.type,
-                                                      gcn_in_dim=config.embedding.label.dimension)
+                                                        label_map=vocab.v2i['label'],
+                                                        device=self.device,
+                                                        graph_model_type=config.structure_encoder.type,
+                                                        gcn_in_dim=config.embedding.label.dimension)
 
         self.himatch = HiMatchTP(config=config,
                                  device=self.device,
@@ -61,7 +62,6 @@ class HiMatch(nn.Module):
                                  label_map=self.label_map,
                                  graph_model_label=self.structure_encoder_label,
                                  model_mode=model_mode)
-
 
     def optimize_params_dict(self):
         """
@@ -87,7 +87,9 @@ class HiMatch(nn.Module):
         if inputs[1] == "TRAIN":
             batch, mode, label_repre = inputs
             if "bert" in self.model_type:
-                outputs = self.bert(batch['input_ids'].to(self.config.train.device_setting.device), batch['segment_ids'].to(self.config.train.device_setting.device), batch['input_mask'].to(self.config.train.device_setting.device))
+                outputs = self.bert(batch['input_ids'].to(self.config.train.device_setting.device),
+                                    batch['segment_ids'].to(self.config.train.device_setting.device),
+                                    batch['input_mask'].to(self.config.train.device_setting.device))
                 pooled_output = outputs[1]
                 token_output = self.bert_dropout(pooled_output)
             else:
@@ -95,7 +97,7 @@ class HiMatch(nn.Module):
                 # get the length of sequences for dynamic rnn, (batch_size, 1)
                 seq_len = batch['token_len']
                 token_output = self.text_encoder(embedding, seq_len)
-            
+
             logits, text_repre, label_repre_positive, label_repre_negative = self.himatch(
                 [token_output, mode, batch['ranking_positive_mask'], batch['ranking_negative_mask'], label_repre])
             return logits, text_repre, label_repre_positive, label_repre_negative
@@ -104,21 +106,25 @@ class HiMatch(nn.Module):
             batch, mode = inputs[0], inputs[1]
 
             if "bert" in self.model_type:
-                outputs = self.bert(batch['input_ids'].to(self.config.train.device_setting.device), batch['segment_ids'].to(self.config.train.device_setting.device), batch['input_mask'].to(self.config.train.device_setting.device))
+                outputs = self.bert(batch['input_ids'].to(self.config.train.device_setting.device),
+                                    batch['segment_ids'].to(self.config.train.device_setting.device),
+                                    batch['input_mask'].to(self.config.train.device_setting.device))
                 pooled_output = outputs[1]
                 token_output = self.bert_dropout(pooled_output)
             else:
                 embedding = self.token_embedding(batch['token'].to(self.config.train.device_setting.device))
                 seq_len = batch['token_len']
                 token_output = self.text_encoder(embedding, seq_len)
-            
+
             logits = self.himatch([token_output, mode])
             return logits
-            
+
     def get_embedding(self, inputs):
         batch, mode = inputs[0], inputs[1]
         if "bert" in self.model_type:
-            outputs = self.bert(batch['input_ids'].to(self.config.train.device_setting.device), batch['segment_ids'].to(self.config.train.device_setting.device), batch['input_mask'].to(self.config.train.device_setting.device))
+            outputs = self.bert(batch['input_ids'].to(self.config.train.device_setting.device),
+                                batch['segment_ids'].to(self.config.train.device_setting.device),
+                                batch['input_mask'].to(self.config.train.device_setting.device))
             pooled_output = outputs[1]
             pooled_output = self.bert_dropout(pooled_output)
         else:

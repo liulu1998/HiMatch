@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import re
-import tqdm
-import helper.logger as logger
 import json
+import re
+
+import tqdm
+
+import helper.logger as logger
 
 english_stopwords = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll",
                      "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's",

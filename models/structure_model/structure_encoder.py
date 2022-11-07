@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # coding:utf-8
 
-import torch.nn as nn
-from models.structure_model.graphcnn import HierarchyGCN
-from models.structure_model.tree import Tree
 import json
 import os
+
 import numpy as np
+import torch.nn as nn
+
 from helper.utils import get_hierarchy_relations
+from models.structure_model.graphcnn import HierarchyGCN
+from models.structure_model.tree import Tree
+
 
 class StructureEncoder(nn.Module):
     def __init__(self,
@@ -29,11 +32,12 @@ class StructureEncoder(nn.Module):
         self.label_map = label_map
         self.root = Tree(-1)
         self.gcn_in_dim = gcn_in_dim if gcn_in_dim is not None else config.structure_encoder.node.dimension
-        
-        self.hierarchical_label_dict = get_hierarchy_relations(os.path.join(config.data.data_dir, config.data.hierarchy),
-                                                                                 self.label_map,
-                                                                                 root=self.root,
-                                                                                 fortree=False)
+
+        self.hierarchical_label_dict = get_hierarchy_relations(
+            os.path.join(config.data.data_dir, config.data.hierarchy),
+            self.label_map,
+            root=self.root,
+            fortree=False)
         hierarchy_prob_file = os.path.join(config.data.data_dir, config.data.prob_json)
         f = open(hierarchy_prob_file, 'r')
         hierarchy_prob_str = f.readlines()
@@ -53,14 +57,14 @@ class StructureEncoder(nn.Module):
                 self.node_prob_from_child[int(self.label_map[p])][int(self.label_map[c])] = 1.0
 
         self.model = HierarchyGCN(num_nodes=len(self.label_map),
-                                                    in_matrix=self.node_prob_from_child,
-                                                    out_matrix=self.node_prob_from_parent,
-                                                    in_dim=self.gcn_in_dim,
-                                                    dropout=config.structure_encoder.node.dropout,
-                                                    device=device,
-                                                    root=self.root,
-                                                    hierarchical_label_dict=self.hierarchical_label_dict,
-                                                    label_trees=None, dataset=config.data.dataset)
+                                  in_matrix=self.node_prob_from_child,
+                                  out_matrix=self.node_prob_from_parent,
+                                  in_dim=self.gcn_in_dim,
+                                  dropout=config.structure_encoder.node.dropout,
+                                  device=device,
+                                  root=self.root,
+                                  hierarchical_label_dict=self.hierarchical_label_dict,
+                                  label_trees=None, dataset=config.data.dataset)
 
     def forward(self, inputs):
         return self.model(inputs)

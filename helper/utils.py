@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
 import codecs
-import torch
-from models.structure_model.tree import Tree
-import os
 import json
+import os
+
+import torch
+
+from models.structure_model.tree import Tree
+
 
 def load_checkpoint(model_file, model, config, optimizer=None):
     """
@@ -79,6 +82,7 @@ def get_hierarchy_relations(hierar_taxonomy, label_map, root=None, fortree=False
     else:
         return hierar_relations
 
+
 def get_parent_sibling(hierar_taxonomy, label_map):
     """
     get parent-children relationships from given hierar_taxonomy
@@ -91,13 +95,13 @@ def get_parent_sibling(hierar_taxonomy, label_map):
     hierar_relations_sibling = {}
     with codecs.open(hierar_taxonomy, "r", "utf8") as f:
         for line in f:
-            #print(line)
+            # print(line)
             line_split = line.rstrip().split('\t')
-            #print(line_split)
+            # print(line_split)
             parent_label, children_label = line_split[0], line_split[1:]
-            #print(parent_label)
-            #print(type(parent_label))
-            #print(parent_label in label_map)
+            # print(parent_label)
+            # print(type(parent_label))
+            # print(parent_label in label_map)
             if parent_label not in label_map:
                 if parent_label != 'Root':
                     continue
@@ -110,6 +114,7 @@ def get_parent_sibling(hierar_taxonomy, label_map):
                 hierar_relations_sibling[child] = children_label_ids
                 children_label_ids.append(child)
     return hierar_relations, hierar_relations_sibling
+
 
 def get_parent(get_child, config, vocab):
     if config.data.dataset == "eurlex":
@@ -137,6 +142,7 @@ def get_parent(get_child, config, vocab):
                 else:
                     hierarchy_prob_child_parent_id[child].append(k)
     return hierarchy_prob_child_parent_id
+
 
 def get_sibling(get_child, config, vocab):
     hierarchy_prob_sibling_id = {}

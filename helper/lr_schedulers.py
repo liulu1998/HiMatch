@@ -1,8 +1,9 @@
 import math
-import numpy as np
 import warnings
-from torch.optim.optimizer import Optimizer
+
+import numpy as np
 from torch.optim.lr_scheduler import LambdaLR
+from torch.optim.optimizer import Optimizer
 
 __all__ = ['CustomDecayLR',
            'BertLR',
@@ -17,6 +18,7 @@ __all__ = ['CustomDecayLR',
            'get_cosine_with_hard_restarts_schedule_with_warmup'
            ]
 
+
 def get_constant_schedule(optimizer, last_epoch=-1):
     """ Create a schedule with a constant learning rate.
     """
@@ -27,6 +29,7 @@ def get_constant_schedule_with_warmup(optimizer, num_warmup_steps, last_epoch=-1
     """ Create a schedule with a constant learning rate preceded by a warmup
     period during which the learning rate increases linearly between 0 and 1.
     """
+
     def lr_lambda(current_step):
         if current_step < num_warmup_steps:
             return float(current_step) / float(max(1.0, num_warmup_steps))
@@ -39,6 +42,7 @@ def get_linear_schedule_with_warmup(optimizer, num_warmup_steps, num_training_st
     """ Create a schedule with a learning rate that decreases linearly after
     linearly increasing during a warmup period.
     """
+
     def lr_lambda(current_step):
         if current_step < num_warmup_steps:
             return float(current_step) / float(max(1, num_warmup_steps))
@@ -52,6 +56,7 @@ def get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_training_st
     values of the cosine function between 0 and `pi * cycles` after a warmup
     period during which it increases linearly between 0 and 1.
     """
+
     def lr_lambda(current_step):
         if current_step < num_warmup_steps:
             return float(current_step) / float(max(1, num_warmup_steps))
@@ -61,11 +66,13 @@ def get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_training_st
     return LambdaLR(optimizer, lr_lambda, last_epoch)
 
 
-def get_cosine_with_hard_restarts_schedule_with_warmup(optimizer, num_warmup_steps, num_training_steps, num_cycles=1., last_epoch=-1):
+def get_cosine_with_hard_restarts_schedule_with_warmup(optimizer, num_warmup_steps, num_training_steps, num_cycles=1.,
+                                                       last_epoch=-1):
     """ Create a schedule with a learning rate that decreases following the
     values of the cosine function with several hard restarts, after a warmup
     period during which it increases linearly between 0 and 1.
     """
+
     def lr_lambda(current_step):
         if current_step < num_warmup_steps:
             return float(current_step) / float(max(1, num_warmup_steps))
@@ -91,11 +98,12 @@ class CustomDecayLR(object):
         >>>         optimizer.step()
         >>>     validate(...)
     '''
-    def __init__(self,optimizer,lr):
+
+    def __init__(self, optimizer, lr):
         self.optimizer = optimizer
         self.lr = lr
 
-    def epoch_step(self,epoch):
+    def epoch_step(self, epoch):
         lr = self.lr
         if epoch > 12:
             lr = lr / 1000
@@ -105,6 +113,7 @@ class CustomDecayLR(object):
             lr = lr / 10
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr
+
 
 class BertLR(object):
     '''
@@ -121,22 +130,24 @@ class BertLR(object):
         >>>         scheduler.batch_step()
         >>>     validate(...)
     '''
-    def __init__(self,optimizer,learning_rate,t_total,warmup):
+
+    def __init__(self, optimizer, learning_rate, t_total, warmup):
         self.learning_rate = learning_rate
         self.optimizer = optimizer
         self.t_total = t_total
         self.warmup = warmup
 
     # 线性预热方式
-    def warmup_linear(self,x, warmup=0.002):
+    def warmup_linear(self, x, warmup=0.002):
         if x < warmup:
             return x / warmup
         return 1.0 - x
 
-    def batch_step(self,training_step):
-        lr_this_step = self.learning_rate * self.warmup_linear(training_step / self.t_total,self.warmup)
+    def batch_step(self, training_step):
+        lr_this_step = self.learning_rate * self.warmup_linear(training_step / self.t_total, self.warmup)
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = lr_this_step
+
 
 class CyclicLR(object):
     '''
@@ -153,6 +164,7 @@ class CyclicLR(object):
         >>>         scheduler.batch_step()
         >>>     validate(...)
     '''
+
     def __init__(self, optimizer, base_lr=1e-3, max_lr=6e-3,
                  step_size=2000, mode='triangular', gamma=1.,
                  scale_fn=None, scale_mode='cycle', last_batch_iteration=-1):
@@ -212,7 +224,7 @@ class CyclicLR(object):
         return 1 / (2. ** (x - 1))
 
     def _exp_range_scale_fn(self, x):
-        return self.gamma**(x)
+        return self.gamma ** (x)
 
     def get_lr(self):
         step_size = float(self.step_size)
@@ -236,6 +248,7 @@ class CyclicLR(object):
         self.last_batch_iteration = batch_iteration
         for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
             param_group['lr'] = lr
+
 
 class ReduceLROnPlateau(object):
     """Reduce learning rate when a metric has stopped improving.
@@ -272,7 +285,7 @@ class ReduceLROnPlateau(object):
     """
 
     def __init__(self, optimizer, mode='min', factor=0.1, patience=10,
-                 verbose=0, epsilon=1e-4, cooldown=0, min_lr=0,eps=1e-8):
+                 verbose=0, epsilon=1e-4, cooldown=0, min_lr=0, eps=1e-8):
 
         super(ReduceLROnPlateau, self).__init__()
         assert isinstance(optimizer, Optimizer)
@@ -340,6 +353,7 @@ class ReduceLROnPlateau(object):
     def in_cooldown(self):
         return self.cooldown_counter > 0
 
+
 class ReduceLRWDOnPlateau(ReduceLROnPlateau):
     """Reduce learning rate and weight decay when a metric has stopped
     improving. Models often benefit from reducing the learning rate by
@@ -361,6 +375,7 @@ class ReduceLRWDOnPlateau(ReduceLROnPlateau):
         >>>     # Note that step should be called after validate()
         >>>     scheduler.epoch_step(val_loss)
     """
+
     def epoch_step(self, metrics, epoch):
         current = metrics
         if current is None:
@@ -389,10 +404,12 @@ class ReduceLRWDOnPlateau(ReduceLROnPlateau):
                             if old_weight_decay > new_weight_decay + self.eps:
                                 param_group['weight_decay'] = new_weight_decay
                                 if self.verbose:
-                                    print('\nEpoch {epoch}: reducing weight decay factor of group {i} to {new_weight_decay:.4e}.')
+                                    print(
+                                        '\nEpoch {epoch}: reducing weight decay factor of group {i} to {new_weight_decay:.4e}.')
                     self.cooldown_counter = self.cooldown
                     self.wait = 0
                 self.wait += 1
+
 
 class CosineLRWithRestarts(object):
     """Decays learning rate with cosine annealing, normalizes weight decay
@@ -506,7 +523,7 @@ class CosineLRWithRestarts(object):
                                "training loop and while initializing "
                                "scheduler should be the same.")
 
-        for param_group, (lr, weight_decay) in zip(self.optimizer.param_groups,self.get_lr(t_cur)):
+        for param_group, (lr, weight_decay) in zip(self.optimizer.param_groups, self.get_lr(t_cur)):
             param_group['lr'] = lr
             param_group['weight_decay'] = weight_decay
 
@@ -527,18 +544,19 @@ class NoamLR(object):
         >>>         scheduler.batch_step(global_step)
         >>>     validate(...)
     '''
-    def __init__(self,d_model,factor,warm_up,optimizer):
+
+    def __init__(self, d_model, factor, warm_up, optimizer):
         self.optimizer = optimizer
         self.warm_up = warm_up
         self.factor = factor
         self.d_model = d_model
         self._lr = 0
 
-    def get_lr(self,step):
-        lr = self.factor * (self.d_model ** (-0.5) * min(step ** (-0.5),step * self.warm_up ** (-1.5)))
+    def get_lr(self, step):
+        lr = self.factor * (self.d_model ** (-0.5) * min(step ** (-0.5), step * self.warm_up ** (-1.5)))
         return lr
 
-    def batch_step(self,step):
+    def batch_step(self, step):
         '''
         update parameters and rate
         :return:

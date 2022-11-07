@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import torch
-import random
 import numpy as np
+import torch
+
 
 class Collator(object):
     def __init__(self, config, vocab, mode="TRAIN"):
@@ -26,7 +26,6 @@ class Collator(object):
         version_num = version.split('.')
         if (int(version_num[0]) == 1 and int(version_num[1]) <= 1) or int(version_num[0]) == 0:
             self.version_higher_11 = False
-
 
     def _multi_hot(self, batch_labels):
         """
@@ -73,7 +72,7 @@ class Collator(object):
         batch_input_mask = []
         batch_segment_ids = []
         batch_input_len = []
-        
+
         for sample_i, sample in enumerate(batch):
             batch_token.append(sample['token'])
             batch_label.append(sample['label'])
@@ -104,7 +103,7 @@ class Collator(object):
         batch_input_mask = torch.LongTensor(batch_input_mask)
         batch_segment_ids = torch.LongTensor(batch_segment_ids)
         batch_input_len = torch.LongTensor(batch_input_len)
-        
+
         if self.mode == "TRAIN":
             batch_ranking_positive_mask = torch.LongTensor(batch_ranking_positive_mask)
             batch_ranking_negative_mask = torch.LongTensor(batch_ranking_negative_mask)

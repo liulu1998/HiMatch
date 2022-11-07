@@ -4,6 +4,7 @@
 import torch
 from torch import nn
 from torch.nn import functional
+
 from models.embedding_layer import EmbeddingLayer
 
 

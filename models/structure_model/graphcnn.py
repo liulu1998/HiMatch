@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # coding:utf-8
+import numpy as np
 import torch
+import torch.nn.functional as F
 from torch import nn
 from torch.nn.parameter import Parameter
-import torch.nn.functional as F
-import numpy as np
 
 
 class HierarchyGCN(nn.Module):
@@ -119,7 +119,6 @@ class HierarchyGCNModule(nn.Module):
         in_ = self.dropout(in_)
         message_ += in_  # batch, N, in_dim
 
-        
         h_output_ = torch.matmul(self.origin_adj.transpose(0, 1) * self.out_adj_matrix, h_)
         out_ = h_output_ + self.out_edge_bias
         out_gate_ = torch.matmul(h_, self.out_gate_weight)
@@ -127,7 +126,7 @@ class HierarchyGCNModule(nn.Module):
         out_ = out_ * F.sigmoid(out_gate_)
         out_ = self.dropout(out_)
         message_ += out_
-        
+
         loop_gate = torch.matmul(h_, self.loop_gate)
         loop_ = h_ * F.sigmoid(loop_gate)
         loop_ = self.dropout(loop_)

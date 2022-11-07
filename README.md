@@ -1,6 +1,10 @@
 # HiMatch  
 The code for ACL-2021 Long Paper [Hierarchy-aware Label Semantics Matching Network for Hierarchical Text Classification](https://aclanthology.org/2021.acl-long.337)  
 
+## TODO
+
+- 获取数据集
+- 处理中文数据集
 
 ## Dependency  
 ```
