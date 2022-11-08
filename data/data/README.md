@@ -29,3 +29,5 @@
 | `wos_train.json`             | 训练集                   |
 | `wos_val.json`               | 验证集                   |
 | `wos_test.json`              | 测试集                   |
+
+每行是一个 dict，注意：文件整体不是 json 格式。每行包含 2个字段，`token` 是 List of str，`label` 是 list of str.

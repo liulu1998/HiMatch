@@ -21,9 +21,11 @@ class Vocab(object):
         :param max_size: int, maximum size of the overall vocabulary
         """
         logger.info('Building Vocabulary....')
-        self.corpus_files = {"TRAIN": os.path.join(config.data.data_dir, config.data.train_file),
-                             "VAL": os.path.join(config.data.data_dir, config.data.val_file),
-                             "TEST": os.path.join(config.data.data_dir, config.data.test_file)}
+        self.corpus_files = {
+            "TRAIN": os.path.join(config.data.data_dir, config.data.train_file),
+            "VAL": os.path.join(config.data.data_dir, config.data.val_file),
+            "TEST": os.path.join(config.data.data_dir, config.data.test_file)
+        }
         counter = Counter()
         self.config = config
         # counter for tokens
@@ -36,9 +38,11 @@ class Vocab(object):
         self.min_freq = max(min_freq, 1)
         if not os.path.isdir(self.config.vocabulary.dir):
             os.system('mkdir ' + str(self.config.vocabulary.dir))
+
         token_dir = os.path.join(self.config.vocabulary.dir, self.config.vocabulary.vocab_dict)
         label_dir = os.path.join(self.config.vocabulary.dir, self.config.vocabulary.label_dict)
         vocab_dir = {'token': token_dir, 'label': label_dir}
+
         if os.path.isfile(label_dir) and os.path.isfile(token_dir):
             logger.info('Loading Vocabulary from Cached Dictionary...')
             with open(token_dir, 'r') as f_in:

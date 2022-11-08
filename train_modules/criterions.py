@@ -6,6 +6,7 @@ from helper.utils import get_hierarchy_relations
 import torch.nn.functional as F
 import numpy as np
 
+
 class FocalLoss(torch.nn.Module):
     def __init__(self, gamma=2, alpha=0.5, size_average=True):
         super(FocalLoss, self).__init__()
@@ -20,7 +21,8 @@ class FocalLoss(torch.nn.Module):
         loss = - alpha * (1 - pt) ** self.gamma * labels * torch.log(pt) - \
                (1 - alpha) * pt ** self.gamma * (1 - labels) * torch.log(1 - pt)
         return torch.mean(loss)
-        
+
+
 class ClassificationLoss(torch.nn.Module):
     def __init__(self,
                  taxonomic_hierarchy,
@@ -28,7 +30,7 @@ class ClassificationLoss(torch.nn.Module):
                  recursive_penalty,
                  recursive_constraint=True, loss_type="bce"):
         """
-        Criterion class, classfication loss & recursive regularization
+        Criterion class, classification loss & recursive regularization
         :param taxonomic_hierarchy:  Str, file path of hierarchy taxonomy
         :param label_map: Dict, label to id
         :param recursive_penalty: Float, lambda value <- config.train.loss.recursive_regularization.penalty
@@ -81,9 +83,10 @@ class ClassificationLoss(torch.nn.Module):
             loss = 0
         if self.recursive_constraint:
             loss += self.loss_fn(logits, targets) + \
-                   self.recursive_penalty * self._recursive_regularization(recursive_params,
-                                                                           device)
+                    self.recursive_penalty * self._recursive_regularization(recursive_params,
+                                                                            device)
         return loss
+
 
 class MarginRankingLoss(torch.nn.Module):
     def __init__(self, config):
@@ -94,10 +97,9 @@ class MarginRankingLoss(torch.nn.Module):
         super(MarginRankingLoss, self).__init__()
         self.dataset = config.data.dataset
         base = 0.2
-        self.ranking = [torch.nn.MarginRankingLoss(margin=base*0.1), torch.nn.MarginRankingLoss(margin=base * 0.5),
+        self.ranking = [torch.nn.MarginRankingLoss(margin=base * 0.1), torch.nn.MarginRankingLoss(margin=base * 0.5),
                         torch.nn.MarginRankingLoss(margin=base)]
         self.negative_ratio = config.data.negative_ratio
-
 
     def forward(self, text_repre, label_repre_positive, label_repre_negative, mask=None):
         """
@@ -123,7 +125,7 @@ class MarginRankingLoss(torch.nn.Module):
             # index 0: parent node
             if i == 0:
                 loss_inter_parent = (torch.pow(text_score - label_n_score, 2)).sum(-1)
-                loss_inter_parent = F.relu((loss_inter_parent-0.01) / text_repre.size(-1))
+                loss_inter_parent = F.relu((loss_inter_parent - 0.01) / text_repre.size(-1))
                 loss_inter_total += loss_inter_parent.mean()
             else:
                 # index 1: wrong sibling, index 2: other wrong label

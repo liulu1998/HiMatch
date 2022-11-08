@@ -52,18 +52,22 @@ def train(config):
     :param config: helper.configure, Configure Object
     """
     # loading corpus and generate vocabulary
-    corpus_vocab = Vocab(config,
-                         min_freq=5,
-                         max_size=config.vocabulary.max_token_vocab)
+    corpus_vocab = Vocab(
+        config,
+        min_freq=5,
+        max_size=config.vocabulary.max_token_vocab
+    )
     tokenizer = BertTokenizer.from_pretrained('bert-base-cased', do_lower_case=False)
 
     # get data
-    train_loader, dev_loader, test_loader, label_desc_loader = data_loaders(config, corpus_vocab,
-                                                                            bert_tokenizer=tokenizer)
+    train_loader, dev_loader, test_loader, label_desc_loader = data_loaders(
+        config, corpus_vocab, bert_tokenizer=tokenizer
+    )
 
     # build up model
     himatch = HiMatch(config, corpus_vocab, model_mode='TRAIN')
     himatch.to(config.train.device_setting.device)
+
     # define training objective & optimizer
     criterion = ClassificationLoss(os.path.join(config.data.data_dir, config.data.hierarchy),
                                    corpus_vocab.v2i['label'],
